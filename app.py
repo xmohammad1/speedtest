@@ -1,11 +1,20 @@
 # app.py
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, redirect
 import time
 import os
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+
+@app.before_request
+def enforce_https():
+    """Redirect incoming HTTP requests to HTTPS."""
+    proto = request.headers.get("X-Forwarded-Proto", "http")
+    if not request.is_secure and proto != "https":
+        url = request.url.replace("http://", "https://", 1)
+        return redirect(url, code=301)
 
 # Define the main route for the website
 @app.route('/')
@@ -69,4 +78,7 @@ def upload():
 if __name__ == '__main__':
     # Running the app on 0.0.0.0 makes it accessible from other devices on the same network.
     # Debug mode is turned off for a more production-like environment.
-    app.run(host='0.0.0.0', port=80, debug=False)
+    cert_file = os.environ.get('SSL_CERT_FILE')
+    key_file = os.environ.get('SSL_KEY_FILE')
+    ssl_context = (cert_file, key_file) if cert_file and key_file else 'adhoc'
+    app.run(host='0.0.0.0', port=443, debug=False, ssl_context=ssl_context)
