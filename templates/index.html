@@ -166,8 +166,10 @@
             let totalTime = 0;
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
-                // Use a cache-busting query parameter to ensure fresh requests
-                await fetch(`/ping?t=${new Date().getTime()}`);
+                // Use a cache-busting query parameter and disable caching so
+                // each request opens a new TCP connection to the server. This
+                // approximates the latency measurement used by speedtest.net.
+                await fetch(`/ping?t=${Date.now()}`, { cache: 'no-store' });
                 const endTime = performance.now();
                 totalTime += (endTime - startTime);
             }
