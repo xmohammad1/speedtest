@@ -75,14 +75,10 @@
         </main>
 
         <!-- Results section -->
-        <footer class="mt-10 grid grid-cols-1 sm:grid-cols-4 gap-4 text-center w-full max-w-2xl mx-auto">
+        <footer class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center w-full max-w-2xl mx-auto">
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-cyan-400">پینگ</h2>
-                <p id="ping-result" class="text-2xl font-bold">- <span class="text-base text-gray-400">ms</span></p>
-            </div>
-            <div class="bg-gray-800 p-4 rounded-lg">
-                <h2 class="text-sm font-semibold text-cyan-400">جیتر</h2>
-                <p id="jitter-result" class="text-2xl font-bold">- <span class="text-base text-gray-400">ms</span></p>
+                <p id="ping-result" class="text-2xl font-bold">- میلی‌ثانیه</p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-cyan-400">دانلود</h2>
@@ -100,7 +96,6 @@
         const startBtn = document.getElementById('start-btn');
         const statusText = document.getElementById('status-text');
         const pingResult = document.getElementById('ping-result');
-        const jitterResult = document.getElementById('jitter-result');
         const downloadResult = document.getElementById('download-result');
         const uploadResult = document.getElementById('upload-result');
         const speedValue = document.getElementById('speed-value');
@@ -109,7 +104,7 @@
         const progressArc = document.getElementById('progress-arc');
 
         // Configuration for the tests
-        const PING_COUNT = 10;
+        const PING_COUNT = 5;
         const DOWNLOAD_TEST_DURATION = 10000; // 10 seconds
         const UPLOAD_TEST_DURATION = 8000; // 8 seconds
         const UPLOAD_DATA_SIZE = 20 * 1024 * 1024; // 20 MB
@@ -128,9 +123,8 @@
 
             try {
                 // Run tests sequentially
-                const { ping, jitter } = await testPing();
+                const ping = await testPing();
                 pingResult.innerHTML = `${ping.toFixed(2)} <span class="text-base text-gray-400">ms</span>`;
-                jitterResult.innerHTML = `${jitter.toFixed(2)} <span class="text-base text-gray-400">ms</span>`;
 
                 const downloadSpeed = await testDownload();
                 downloadResult.innerHTML = `${downloadSpeed.toFixed(2)} <span class="text-base text-gray-400">Mbps</span>`;
@@ -156,7 +150,6 @@
         function resetResults() {
             statusText.textContent = '';
             pingResult.innerHTML = `- <span class="text-base text-gray-400">ms</span>`;
-            jitterResult.innerHTML = `- <span class="text-base text-gray-400">ms</span>`;
             downloadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             uploadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             updateGauge(0);
@@ -166,24 +159,19 @@
 
         /**
          * Measures latency by pinging the server.
-         * @returns {Promise<{ping: number, jitter: number}>} Ping and jitter in milliseconds.
+         * @returns {Promise<number>} The average ping in milliseconds.
          */
         async function testPing() {
             statusText.textContent = 'در حال آزمایش پینگ...';
-            const samples = [];
+            let totalTime = 0;
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
-                await fetch(`/ping?t=${Date.now()}`, { cache: 'no-store' });
+                // Use a cache-busting query parameter to ensure fresh requests
+                await fetch(`/ping?t=${new Date().getTime()}`);
                 const endTime = performance.now();
-                samples.push(endTime - startTime);
+                totalTime += (endTime - startTime);
             }
-            const ping = Math.min(...samples);
-            let jitter = 0;
-            for (let i = 1; i < samples.length; i++) {
-                jitter += Math.abs(samples[i] - samples[i - 1]);
-            }
-            jitter = jitter / (samples.length - 1);
-            return { ping, jitter };
+            return totalTime / PING_COUNT;
         }
 
         /**
