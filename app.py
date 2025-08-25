@@ -1,8 +1,10 @@
 # app.py
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request, abort
+from flask import Flask, render_template, Response, request, abort, jsonify
 import time
 import os
+import subprocess
+import re
 from pathlib import Path
 
 
@@ -39,16 +41,23 @@ def index():
 
 @app.route('/ping')
 def ping():
-    """
-    A simple endpoint to measure latency.
-    The client-side JavaScript will fetch this and measure the round-trip time.
-    It returns a simple 'pong' response with headers to prevent caching.
-    """
-    response = Response("pong")
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    """Perform an ICMP ping to the requesting client and return latency."""
+    target = request.remote_addr
+    try:
+        # Run a single ICMP echo request with a one second timeout
+        result = subprocess.run(
+            ["ping", "-c", "1", "-W", "1", target],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0:
+            match = re.search(r'time[=<]([\d.]+) ms', result.stdout)
+            if match:
+                return jsonify({"ping": float(match.group(1))})
+    except Exception:
+        pass
+    return jsonify({"error": "ping failed"}), 500
 
 
 @app.before_request
