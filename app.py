@@ -1,11 +1,28 @@
 # app.py
+"""Flask application providing endpoints for speed testing.
+
+The server is configured to serve content exclusively over HTTPS. Any
+incoming HTTP requests are redirected to HTTPS, and the certificate/key
+pair used for TLS can be configured via environment variables
+``SSL_CERT_FILE`` and ``SSL_KEY_FILE``.
+"""
+
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, redirect
 import time
 import os
+from threading import Thread
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+
+@app.before_request
+def redirect_to_https():
+    """Redirect incoming plain HTTP requests to their HTTPS counterparts."""
+    if not request.is_secure and request.headers.get('X-Forwarded-Proto', 'http') != 'https':
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
 
 # Define the main route for the website
 @app.route('/')
@@ -67,6 +84,22 @@ def upload():
 
 # This block ensures the app runs only when the script is executed directly
 if __name__ == '__main__':
-    # Running the app on 0.0.0.0 makes it accessible from other devices on the same network.
+    # Retrieve certificate and key file paths from environment variables.
+    cert_file = os.environ.get('SSL_CERT_FILE')
+    key_file = os.environ.get('SSL_KEY_FILE')
+
+    # Launch a minimal HTTP server on port 80 that redirects all requests to HTTPS.
+    redirect_app = Flask('redirect_app')
+
+    @redirect_app.route('/', defaults={'path': ''})
+    @redirect_app.route('/<path:path>')
+    def _redirect(path):  # pragma: no cover - simple redirect helper
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
+
+    Thread(target=lambda: redirect_app.run(host='0.0.0.0', port=80, debug=False)).start()
+
+    # Running the HTTPS server on 0.0.0.0 makes it accessible from other devices on the same network.
     # Debug mode is turned off for a more production-like environment.
-    app.run(host='0.0.0.0', port=80, debug=False)
+    ssl_context = (cert_file, key_file) if cert_file and key_file else 'adhoc'
+    app.run(host='0.0.0.0', port=443, debug=False, ssl_context=ssl_context)
