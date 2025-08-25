@@ -1,11 +1,20 @@
 # app.py
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request
-import time
+from flask import Flask, render_template, Response, request, redirect
+import threading
 import os
 
 # Initialize the Flask application
 app = Flask(__name__)
+redirect_app = Flask('redirect_app')
+
+
+@redirect_app.route('/', defaults={'path': ''})
+@redirect_app.route('/<path:path>')
+def _redirect(path):
+    """Redirect all HTTP requests to HTTPS."""
+    url = request.url.replace('http://', 'https://', 1)
+    return redirect(url, code=301)
 
 # Define the main route for the website
 @app.route('/')
@@ -67,6 +76,9 @@ def upload():
 
 # This block ensures the app runs only when the script is executed directly
 if __name__ == '__main__':
-    # Running the app on 0.0.0.0 makes it accessible from other devices on the same network.
-    # Debug mode is turned off for a more production-like environment.
-    app.run(host='0.0.0.0', port=80, debug=False)
+    cert_file = os.environ.get('CERT_FILE')
+    key_file = os.environ.get('KEY_FILE')
+    ssl_context = (cert_file, key_file) if cert_file and key_file else 'adhoc'
+
+    threading.Thread(target=lambda: redirect_app.run(host='0.0.0.0', port=80)).start()
+    app.run(host='0.0.0.0', port=443, debug=False, ssl_context=ssl_context)
