@@ -80,7 +80,6 @@
                 <h2 class="text-sm font-semibold text-cyan-400">پینگ</h2>
                 <p id="ping-result" class="text-2xl font-bold">- <span class="text-base text-gray-400">ms</span></p>
                 <p id="jitter-result" class="text-sm text-gray-400">جیتر: - <span class="text-xs">ms</span></p>
-                <div id="ping-details" class="text-xs text-gray-400 mt-2 text-left"></div>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-cyan-400">دانلود</h2>
@@ -99,7 +98,6 @@
         const statusText = document.getElementById('status-text');
         const pingResult = document.getElementById('ping-result');
         const jitterResult = document.getElementById('jitter-result');
-        const pingDetails = document.getElementById('ping-details');
         const downloadResult = document.getElementById('download-result');
         const uploadResult = document.getElementById('upload-result');
         const speedValue = document.getElementById('speed-value');
@@ -156,7 +154,6 @@
             statusText.textContent = '';
             pingResult.innerHTML = `- <span class="text-base text-gray-400">ms</span>`;
             jitterResult.innerHTML = `جیتر: - <span class="text-xs text-gray-400">ms</span>`;
-            pingDetails.innerHTML = '';
             downloadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             uploadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             updateGauge(0);
@@ -184,7 +181,6 @@
                 await fetch(`/ping?t=${Date.now()}&i=${i}`);
                 const duration = performance.now() - startTime;
                 times.push(duration);
-                pingDetails.innerHTML += `پینگ ${i + 1}: ${duration.toFixed(2)} ms<br>`;
                 if (previous !== null) {
                     jitterSum += Math.abs(duration - previous);
                 }
