@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Speed Test</title>
+    <title>تست سرعت اینترنت پایتون</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a modern look -->
@@ -38,8 +38,8 @@
 
     <div class="w-full max-w-4xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-cyan-400">Python Internet Speed Test</h1>
-            <p class="text-gray-400 mt-2">Powered by Flask & JavaScript</p>
+            <h1 class="text-4xl font-bold text-cyan-400">تست سرعت اینترنت پایتون</h1>
+            <p class="text-gray-400 mt-2">با استفاده از Flask و JavaScript</p>
         </header>
 
         <main class="flex flex-col items-center">
@@ -62,14 +62,13 @@
                 </svg>
                 <!-- Speed display text in the center of the gauge -->
                 <div id="speed-display" class="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
-                    <span id="speed-value" class="text-5xl font-bold">0.00</span>
-                    <span id="speed-unit" class="text-gray-400 block">Mbps</span>
+                    <span id="speed-value" class="text-5xl font-bold">۰.۰۰</span>
+                    <span id="speed-unit" class="text-gray-400 block">مگابیت بر ثانیه</span>
                 </div>
             </div>
 
             <!-- Start button -->
-            <button id="start-btn" class="relative bg-cyan-500 hover:bg-cyan-600 text-gray-900 font-bold rounded-full w-32 h-32 flex items-center justify-center text-3xl shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-300 focus:ring-opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed animate-pulse-slow">
-                Go
+            <button id="start-btn" class="relative bg-cyan-500 hover:bg-cyan-600 text-gray-900 font-bold rounded-full w-32 h-32 flex items-center justify-center text-3xl shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-300 focus:ring-opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed animate-pulse-slow">شروع
             </button>
             <div id="status-text" class="mt-4 text-lg text-gray-400 h-6"></div>
         </main>
@@ -77,16 +76,16 @@
         <!-- Results section -->
         <footer class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center w-full max-w-2xl mx-auto">
             <div class="bg-gray-800 p-4 rounded-lg">
-                <h2 class="text-sm font-semibold text-cyan-400">PING</h2>
-                <p id="ping-result" class="text-2xl font-bold">- ms</p>
+                <h2 class="text-sm font-semibold text-cyan-400">پینگ</h2>
+                <p id="ping-result" class="text-2xl font-bold">- میلی‌ثانیه</p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
-                <h2 class="text-sm font-semibold text-cyan-400">DOWNLOAD</h2>
-                <p id="download-result" class="text-2xl font-bold">- Mbps</p>
+                <h2 class="text-sm font-semibold text-cyan-400">دانلود</h2>
+                <p id="download-result" class="text-2xl font-bold">- مگابیت بر ثانیه</p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
-                <h2 class="text-sm font-semibold text-cyan-400">UPLOAD</h2>
-                <p id="upload-result" class="text-2xl font-bold">- Mbps</p>
+                <h2 class="text-sm font-semibold text-cyan-400">آپلود</h2>
+                <p id="upload-result" class="text-2xl font-bold">- مگابیت بر ثانیه</p>
             </div>
         </footer>
     </div>
@@ -124,20 +123,20 @@
             try {
                 // Run tests sequentially
                 const ping = await testPing();
-                pingResult.innerHTML = `${ping.toFixed(2)} <span class="text-base text-gray-400">ms</span>`;
+                pingResult.innerHTML = `${ping.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-base text-gray-400">میلی‌ثانیه</span>`;
 
                 const downloadSpeed = await testDownload();
-                downloadResult.innerHTML = `${downloadSpeed.toFixed(2)} <span class="text-base text-gray-400">Mbps</span>`;
+                downloadResult.innerHTML = `${downloadSpeed.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-base text-gray-400">مگابیت بر ثانیه</span>`;
 
                 const uploadSpeed = await testUpload();
-                uploadResult.innerHTML = `${uploadSpeed.toFixed(2)} <span class="text-base text-gray-400">Mbps</span>`;
+                uploadResult.innerHTML = `${uploadSpeed.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-base text-gray-400">مگابیت بر ثانیه</span>`;
 
             } catch (error) {
-                statusText.textContent = "An error occurred during the test.";
+                statusText.textContent = "خطایی در طول آزمون رخ داد.";
                 console.error(error);
             } finally {
                 // Re-enable button and finalize UI
-                statusText.textContent = "Test Complete!";
+                statusText.textContent = "آزمون به پایان رسید!";
                 startBtn.disabled = false;
                 startBtn.classList.add('animate-pulse-slow');
                 updateGauge(0); // Reset gauge to zero
@@ -149,12 +148,12 @@
          */
         function resetResults() {
             statusText.textContent = '';
-            pingResult.innerHTML = `- <span class="text-base text-gray-400">ms</span>`;
-            downloadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
-            uploadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
+            pingResult.innerHTML = `- <span class="text-base text-gray-400">میلی‌ثانیه</span>`;
+            downloadResult.innerHTML = `- <span class="text-base text-gray-400">مگابیت بر ثانیه</span>`;
+            uploadResult.innerHTML = `- <span class="text-base text-gray-400">مگابیت بر ثانیه</span>`;
             updateGauge(0);
-            speedValue.textContent = "0.00";
-            speedUnit.textContent = "Mbps";
+            speedValue.textContent = "۰.۰۰";
+            speedUnit.textContent = "مگابیت بر ثانیه";
         }
 
         /**
@@ -162,7 +161,7 @@
          * @returns {Promise<number>} The average ping in milliseconds.
          */
         async function testPing() {
-            statusText.textContent = 'Testing Ping...';
+            statusText.textContent = 'در حال آزمون پینگ...';
             let totalTime = 0;
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
@@ -179,7 +178,7 @@
          * @returns {Promise<number>} The average download speed in Mbps.
          */
         function testDownload() {
-            statusText.textContent = 'Testing Download Speed...';
+            statusText.textContent = 'در حال آزمون سرعت دانلود...';
             return new Promise(async (resolve, reject) => {
                 let totalBytes = 0;
                 const startTime = performance.now();
@@ -245,7 +244,7 @@
          * @returns {Promise<number>} The average upload speed in Mbps.
          */
         function testUpload() {
-            statusText.textContent = 'Testing Upload Speed...';
+            statusText.textContent = 'در حال آزمون سرعت آپلود...';
             return new Promise(async (resolve, reject) => {
                 try {
                     // Generate random data to upload
@@ -289,7 +288,7 @@
          * @param {number} speedMbps - The speed in Mbps.
          */
         function updateGauge(speedMbps) {
-            speedValue.textContent = speedMbps.toFixed(2);
+            speedValue.textContent = speedMbps.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             
             // The mapping from speed to angle is logarithmic to better display a wide range of speeds
             const logSpeed = Math.log10(speedMbps + 1); // Use +1 to avoid log(0)
