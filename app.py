@@ -1,23 +1,11 @@
 # app.py
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request, redirect
+from flask import Flask, render_template, Response, request
 import time
 import os
 
 # Initialize the Flask application
 app = Flask(__name__)
-
-
-@app.before_request
-def enforce_https():
-    """Redirect incoming requests to HTTPS if they arrive via HTTP."""
-    # When running behind a proxy (e.g. in production), the X-Forwarded-Proto
-    # header is commonly used to signal the original scheme. Fall back to
-    # Flask's ``request.is_secure`` for direct requests.
-    proto = request.headers.get("X-Forwarded-Proto", "http")
-    if proto != "https" and not request.is_secure:
-        url = request.url.replace("http://", "https://", 1)
-        return redirect(url, code=301)
 
 # Define the main route for the website
 @app.route('/')
@@ -81,8 +69,4 @@ def upload():
 if __name__ == '__main__':
     # Running the app on 0.0.0.0 makes it accessible from other devices on the same network.
     # Debug mode is turned off for a more production-like environment.
-    cert_file = os.environ.get('CERT_FILE')
-    key_file = os.environ.get('KEY_FILE')
-    ssl_context = (cert_file, key_file) if cert_file and key_file else None
-    port = 443 if ssl_context else 80
-    app.run(host='0.0.0.0', port=port, debug=False, ssl_context=ssl_context)
+    app.run(host='0.0.0.0', port=80, debug=False)
