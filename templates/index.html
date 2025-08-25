@@ -165,11 +165,11 @@
             statusText.textContent = 'در حال آزمایش پینگ...';
             let totalTime = 0;
             for (let i = 0; i < PING_COUNT; i++) {
-                const response = await fetch(`/ping?t=${Date.now()}`);
-                const value = parseFloat(await response.text());
-                if (!isNaN(value)) {
-                    totalTime += value;
-                }
+                const startTime = performance.now();
+                // Use a cache-busting query parameter to ensure fresh requests
+                await fetch(`/ping?t=${new Date().getTime()}`);
+                const endTime = performance.now();
+                totalTime += (endTime - startTime);
             }
             return totalTime / PING_COUNT;
         }
