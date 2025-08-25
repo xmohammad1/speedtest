@@ -2,8 +2,6 @@
 
 Simple Flask application for measuring network speed.
 
-The application now performs latency tests using ICMP ping from the server to the client instead of measuring HTTP request times.
-
 ## Configuration
 
 Create a `.env` file in the project root to configure HTTPS and allowed domains:
