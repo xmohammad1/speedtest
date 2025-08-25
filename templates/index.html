@@ -78,7 +78,8 @@
         <footer class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center w-full max-w-2xl mx-auto">
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-cyan-400">پینگ</h2>
-                <p id="ping-result" class="text-2xl font-bold">- میلی‌ثانیه</p>
+                <p id="ping-result" class="text-2xl font-bold">- <span class="text-base text-gray-400">ms</span></p>
+                <p id="jitter-result" class="text-sm text-gray-400">جیتر: - <span class="text-xs">ms</span></p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-cyan-400">دانلود</h2>
@@ -96,6 +97,7 @@
         const startBtn = document.getElementById('start-btn');
         const statusText = document.getElementById('status-text');
         const pingResult = document.getElementById('ping-result');
+        const jitterResult = document.getElementById('jitter-result');
         const downloadResult = document.getElementById('download-result');
         const uploadResult = document.getElementById('upload-result');
         const speedValue = document.getElementById('speed-value');
@@ -104,7 +106,7 @@
         const progressArc = document.getElementById('progress-arc');
 
         // Configuration for the tests
-        const PING_COUNT = 5;
+        const PING_COUNT = 10; // Number of ping samples like speedtest.net
         const DOWNLOAD_TEST_DURATION = 10000; // 10 seconds
         const UPLOAD_TEST_DURATION = 8000; // 8 seconds
         const UPLOAD_DATA_SIZE = 20 * 1024 * 1024; // 20 MB
@@ -123,8 +125,9 @@
 
             try {
                 // Run tests sequentially
-                const ping = await testPing();
+                const { ping, jitter } = await testPing();
                 pingResult.innerHTML = `${ping.toFixed(2)} <span class="text-base text-gray-400">ms</span>`;
+                jitterResult.innerHTML = `جیتر: ${jitter.toFixed(2)} <span class="text-xs text-gray-400">ms</span>`;
 
                 const downloadSpeed = await testDownload();
                 downloadResult.innerHTML = `${downloadSpeed.toFixed(2)} <span class="text-base text-gray-400">Mbps</span>`;
@@ -150,6 +153,7 @@
         function resetResults() {
             statusText.textContent = '';
             pingResult.innerHTML = `- <span class="text-base text-gray-400">ms</span>`;
+            jitterResult.innerHTML = `جیتر: - <span class="text-xs text-gray-400">ms</span>`;
             downloadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             uploadResult.innerHTML = `- <span class="text-base text-gray-400">Mbps</span>`;
             updateGauge(0);
@@ -158,20 +162,34 @@
         }
 
         /**
-         * Measures latency by pinging the server.
-         * @returns {Promise<number>} The average ping in milliseconds.
+         * Measures latency by pinging the server similarly to speedtest.net.
+         * Returns the best ping and average jitter.
+         * @returns {Promise<{ping:number, jitter:number}>}
          */
         async function testPing() {
             statusText.textContent = 'در حال آزمایش پینگ...';
-            let totalTime = 0;
+
+            // Warm-up request to avoid initial DNS or connection delays
+            await fetch(`/ping?t=${Date.now()}`);
+
+            const times = [];
+            let previous = null;
+            let jitterSum = 0;
+
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
-                // Use a cache-busting query parameter to ensure fresh requests
-                await fetch(`/ping?t=${new Date().getTime()}`);
-                const endTime = performance.now();
-                totalTime += (endTime - startTime);
+                await fetch(`/ping?t=${Date.now()}&i=${i}`);
+                const duration = performance.now() - startTime;
+                times.push(duration);
+                if (previous !== null) {
+                    jitterSum += Math.abs(duration - previous);
+                }
+                previous = duration;
             }
-            return totalTime / PING_COUNT;
+
+            const ping = Math.min(...times); // Best (lowest) latency
+            const jitter = times.length > 1 ? jitterSum / (times.length - 1) : 0;
+            return { ping, jitter };
         }
 
         /**
