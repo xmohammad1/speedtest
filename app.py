@@ -3,6 +3,8 @@
 from flask import Flask, render_template, Response, request, abort
 import time
 import os
+import subprocess
+import re
 from pathlib import Path
 
 
@@ -49,6 +51,25 @@ def ping():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+
+@app.route('/icmp_ping')
+def icmp_ping():
+    """Measure latency using system ICMP ping."""
+    target = request.args.get('target', request.remote_addr)
+    count = int(request.args.get('count', 4))
+    try:
+        result = subprocess.run(
+            ["ping", "-c", str(count), target],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        match = re.search(r'=\s*[^/]+/([^/]+)/', result.stdout)
+        avg = float(match.group(1)) if match else None
+    except Exception:
+        abort(500)
+    return {"target": target, "avg_ms": avg}
 
 
 @app.before_request

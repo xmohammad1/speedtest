@@ -1,6 +1,7 @@
 # Speedtest
 
 Simple Flask application for measuring network speed.
+Ping latency is measured using system ICMP echo requests for accuracy.
 
 ## Configuration
 
