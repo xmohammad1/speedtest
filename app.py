@@ -48,6 +48,10 @@ def ping():
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
+    # Close the connection after each response so the client must establish a new
+    # TCP connection for every ping request. This mimics the behaviour of
+    # services like speedtest.net that measure latency based on TCP handshakes.
+    response.headers['Connection'] = 'close'
     return response
 
 
