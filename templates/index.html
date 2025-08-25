@@ -172,17 +172,14 @@
         async function testPing() {
             statusText.textContent = 'در حال آزمایش پینگ...';
 
-            // Warm-up request to avoid initial DNS or connection delays
-            await fetch(`/ping?t=${Date.now()}`);
-
             const times = [];
             let previous = null;
             let jitterSum = 0;
 
             for (let i = 0; i < PING_COUNT; i++) {
-                const startTime = performance.now();
-                await fetch(`/ping?t=${Date.now()}&i=${i}`);
-                const duration = performance.now() - startTime;
+                const response = await fetch(`/ping?t=${Date.now()}&i=${i}`);
+                const data = await response.json();
+                const duration = data.ping;
                 times.push(duration);
                 pingDetails.innerHTML += `پینگ ${i + 1}: ${duration.toFixed(2)} ms<br>`;
                 if (previous !== null) {
