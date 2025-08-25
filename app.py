@@ -4,6 +4,7 @@ from flask import Flask, render_template, Response, request, abort
 import time
 import os
 from pathlib import Path
+from ping3 import ping as icmp_ping
 
 
 def load_env_file(path: str = '.env') -> None:
@@ -39,12 +40,17 @@ def index():
 
 @app.route('/ping')
 def ping():
-    """
-    A simple endpoint to measure latency.
-    The client-side JavaScript will fetch this and measure the round-trip time.
-    It returns a simple 'pong' response with headers to prevent caching.
-    """
-    response = Response("pong")
+    """Measure latency using an ICMP echo request."""
+    client_ip = request.remote_addr
+    try:
+        delay = icmp_ping(client_ip, unit="ms")
+    except PermissionError:
+        return Response("ICMP requires administrative privileges", status=500)
+
+    if delay is None:
+        return Response("timeout", status=504)
+
+    response = Response(str(delay))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
