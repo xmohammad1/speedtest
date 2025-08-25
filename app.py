@@ -51,17 +51,6 @@ def ping():
     return response
 
 
-@app.route('/tcp-ping')
-def tcp_ping():
-    """A TCP-based ping endpoint that forces a new connection for each request."""
-    response = Response("pong")
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    response.headers['Connection'] = 'close'
-    return response
-
-
 @app.before_request
 def restrict_host():
     """Restrict requests to configured domains if provided."""
