@@ -21,3 +21,14 @@ python app.py
 ```
 
 The server will start on HTTPS port `443` using the provided certificate files.
+
+## Ping Test
+
+Latency measurements now use ICMP echo requests via the [`ping3`](https://pypi.org/project/ping3/) library. Make sure the
+environment has the package installed:
+
+```
+pip install ping3
+```
+
+Running ICMP pings may require administrative privileges depending on the operating system.
