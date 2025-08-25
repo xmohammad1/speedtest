@@ -159,19 +159,23 @@
 
         /**
          * Measures latency by pinging the server.
-         * @returns {Promise<number>} The average ping in milliseconds.
+         * Mimics Speedtest.net by sending multiple requests, discarding
+         * the first measurement (to avoid TCP warm-up) and reporting
+         * the lowest round-trip time.
+         * @returns {Promise<number>} The best ping in milliseconds.
          */
         async function testPing() {
             statusText.textContent = 'در حال آزمایش پینگ...';
-            let totalTime = 0;
+            const samples = [];
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
                 // Use a cache-busting query parameter to ensure fresh requests
-                await fetch(`/ping?t=${new Date().getTime()}`);
-                const endTime = performance.now();
-                totalTime += (endTime - startTime);
+                await fetch(`/ping?t=${Date.now()}`, { cache: 'no-store' });
+                samples.push(performance.now() - startTime);
             }
-            return totalTime / PING_COUNT;
+            // Remove the first sample to avoid initialization overhead and return the minimum
+            samples.shift();
+            return Math.min(...samples);
         }
 
         /**
