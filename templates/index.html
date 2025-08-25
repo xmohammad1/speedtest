@@ -167,7 +167,7 @@
             for (let i = 0; i < PING_COUNT; i++) {
                 const startTime = performance.now();
                 // Use a cache-busting query parameter to ensure fresh requests
-                await fetch(`/ping?t=${Date.now()}`, { cache: 'no-store' });
+                await fetch(`/ping?t=${new Date().getTime()}`);
                 const endTime = performance.now();
                 totalTime += (endTime - startTime);
             }
