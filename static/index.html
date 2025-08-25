@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Speed Test</title>
+</head>
+<body>
+  <h1>Simple Speed Test</h1>
+  <button id="start">Start Test</button>
+  <p id="ping">Ping: -</p>
+  <p id="download">Download: -</p>
+  <p id="upload">Upload: -</p>
+  <script>
+    async function testPing() {
+      const start = performance.now();
+      await fetch('/ping');
+      return performance.now() - start;
+    }
+
+    async function testDownload() {
+      const start = performance.now();
+      const response = await fetch('/download?size=' + (5 * 1024 * 1024));
+      const reader = response.body.getReader();
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        received += value.length;
+      }
+      const duration = (performance.now() - start) / 1000;
+      return (received * 8 / duration) / 1_000_000; // Mbps
+    }
+
+    async function testUpload() {
+      const size = 5 * 1024 * 1024;
+      const data = new Uint8Array(size);
+      crypto.getRandomValues(data);
+      const start = performance.now();
+      await fetch('/upload', { method: 'POST', body: data });
+      const duration = (performance.now() - start) / 1000;
+      return (size * 8 / duration) / 1_000_000; // Mbps
+    }
+
+    document.getElementById('start').addEventListener('click', async () => {
+      document.getElementById('ping').textContent = 'Ping: testing...';
+      document.getElementById('download').textContent = 'Download: testing...';
+      document.getElementById('upload').textContent = 'Upload: testing...';
+
+      const ping = await testPing();
+      document.getElementById('ping').textContent = `Ping: ${ping.toFixed(2)} ms`;
+
+      const download = await testDownload();
+      document.getElementById('download').textContent = `Download: ${download.toFixed(2)} Mbps`;
+
+      const upload = await testUpload();
+      document.getElementById('upload').textContent = `Upload: ${upload.toFixed(2)} Mbps`;
+    });
+  </script>
+</body>
+</html>
