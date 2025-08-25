@@ -2,6 +2,9 @@
 
 Simple Flask application for measuring network speed.
 
+The `/ping` endpoint forces the TCP connection to close on every request so
+that latency is calculated over a fresh TCP handshake similar to speedtest.net.
+
 ## Configuration
 
 Create a `.env` file in the project root to configure HTTPS and allowed domains:
