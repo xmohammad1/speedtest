@@ -1,8 +1,29 @@
 # app.py
 # Import necessary libraries from Flask and standard Python libraries
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, abort
 import time
 import os
+from pathlib import Path
+
+
+def load_env_file(path: str = '.env') -> None:
+    """Simple .env loader without external dependencies."""
+    env_path = Path(path)
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                key, _, value = line.partition('=')
+                os.environ.setdefault(key, value)
+
+
+load_env_file()
+
+DOMAINS = [d.strip() for d in os.getenv('DOMAINS', '').split(',') if d.strip()]
+HOST = os.getenv('HOST', '0.0.0.0')
+PORT = int(os.getenv('PORT', 443))
+SSL_CERT_FILE = os.getenv('SSL_CERT_FILE')
+SSL_KEY_FILE = os.getenv('SSL_KEY_FILE')
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -28,6 +49,15 @@ def ping():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+
+@app.before_request
+def restrict_host():
+    """Restrict requests to configured domains if provided."""
+    if DOMAINS:
+        host = request.host.split(':', 1)[0]
+        if host not in DOMAINS:
+            abort(403)
 
 @app.route('/download')
 def download():
@@ -67,6 +97,6 @@ def upload():
 
 # This block ensures the app runs only when the script is executed directly
 if __name__ == '__main__':
-    # Running the app on 0.0.0.0 makes it accessible from other devices on the same network.
+    # Running the app on the specified host and port with HTTPS.
     # Debug mode is turned off for a more production-like environment.
-    app.run(host='0.0.0.0', port=80, debug=False)
+    app.run(host=HOST, port=PORT, debug=False, ssl_context=(SSL_CERT_FILE, SSL_KEY_FILE))
